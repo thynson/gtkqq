@@ -1,5 +1,5 @@
 #include "qqwindow.h"
-#include <gtk/gtkmain.h>
+#include <gtk/gtk.h>
 #include <cairo.h>
 #include <math.h>
 
@@ -52,7 +52,7 @@ GType qq_window_get_type()
 {
 	static GType type = 0;
 	if(type == 0){
-		static const GTypeInfo type_info = 
+		static const GTypeInfo type_info =
 		{
 			sizeof(QQWindowClass),
 			NULL,
@@ -82,7 +82,7 @@ void qq_window_init(QQWindow *qwin, gpointer data)
 {
 	g_return_if_fail(qwin != NULL);
 	g_return_if_fail(QQ_IS_WINDOW(qwin));
-	
+
 	GtkWidget *widget = GTK_WIDGET(qwin);
 	GtkWindow *win = GTK_WINDOW(qwin);
 
@@ -110,11 +110,11 @@ void qq_window_init(QQWindow *qwin, gpointer data)
 	/*
 	 * set the events mask.
 	 * At default, the window does not recieve the button-press event.
-	 * We must show the window first, which means the gdk window is 
+	 * We must show the window first, which means the gdk window is
 	 * created, before we can set the events mask.
 	 */
 	gtk_widget_show(widget);
-	gdk_window_set_events(widget -> window, GDK_ALL_EVENTS_MASK);
+	gdk_window_set_events(GDK_WINDOW(widget), GDK_ALL_EVENTS_MASK);
 	/*
 	 * We do NOT want to show the window at the creation.
 	 * So we hide it.
@@ -138,9 +138,13 @@ void qq_window_class_init(QQWindowClass *qclass, gpointer data)
 
 	qclass -> resize_border = 10;
 
+#if !GTK_CHECK_VERSION(3,0,0)
 	qclass -> cm = gdk_colormap_get_system();
 	gdk_color_black(qclass -> cm, &qclass -> bg);
 	gdk_color_white(qclass -> cm, &qclass -> fg);
+#else
+    qclass -> cm = gdk_visual_get_system ();
+#endif
 }
 
 void qq_window_dispose(GObject *obj)
@@ -181,7 +185,7 @@ gboolean button_press_event_cb(GtkWidget *widget, GdkEventButton *event
 	gtk_window_get_size(GTK_WINDOW(widget), &width, &height);
 
 	if(x >= c -> resize_border && y >= 3/* up border is thin */
-			&& x <= width - c -> resize_border 
+			&& x <= width - c -> resize_border
 			&& y <= height - c -> resize_border
 			&& ! QQ_WINDOW(widget) -> is_maxsize){
 		/*
@@ -205,19 +209,19 @@ gboolean button_press_event_cb(GtkWidget *widget, GdkEventButton *event
 		edge = GDK_WINDOW_EDGE_SOUTH_WEST;
 	}else if(x > width - c -> resize_border && y < c -> resize_border){
 		edge = GDK_WINDOW_EDGE_NORTH_EAST;
-	}else if(x < c -> resize_border && y > c -> resize_border 
+	}else if(x < c -> resize_border && y > c -> resize_border
 				&& y < height - c -> resize_border){
 		edge = GDK_WINDOW_EDGE_WEST;
-	}else if(x > width - c -> resize_border && y > c -> resize_border 
+	}else if(x > width - c -> resize_border && y > c -> resize_border
 				&& y < height - c -> resize_border){
 		edge = GDK_WINDOW_EDGE_EAST;
-	}else if(y < 3 && x > c -> resize_border 
+	}else if(y < 3 && x > c -> resize_border
 				&& x < width - c -> resize_border){
 		/*
 		 * The up border. Seldom to use to resize the window.
 		 */
 		edge = GDK_WINDOW_EDGE_NORTH;
-	}else if(y > height - c -> resize_border && x > c -> resize_border 
+	}else if(y > height - c -> resize_border && x > c -> resize_border
 				&& x < width - c -> resize_border){
 		edge = GDK_WINDOW_EDGE_SOUTH;
 	}
@@ -226,7 +230,7 @@ gboolean button_press_event_cb(GtkWidget *widget, GdkEventButton *event
 					,edge, 1 /* left button */
 					, root_x, root_y, 0);
 	}
-	
+
 	return FALSE;
 }
 
@@ -247,7 +251,7 @@ gboolean motion_event_cb(GtkWidget *widget, GdkEventMotion *event
 	gtk_window_get_size(GTK_WINDOW(widget), &width, &height);
 
 	GdkCursor *cur, *nc;
-	nc = gdk_window_get_cursor(widget -> window);
+	nc = gdk_window_get_cursor(GDK_WINDOW(widget));
 
 	if(x < c -> resize_border && y < c -> resize_border){
 		cur = c -> tlc;
@@ -257,23 +261,23 @@ gboolean motion_event_cb(GtkWidget *widget, GdkEventMotion *event
 		cur = c -> blc;
 	}else if(x > width - c -> resize_border && y < c -> resize_border){
 		cur = c -> trc;
-	}else if(x < c -> resize_border && y > c -> resize_border 
+	}else if(x < c -> resize_border && y > c -> resize_border
 				&& y < height - c -> resize_border){
 		cur = c -> ls;
-	}else if(x > width - c -> resize_border && y > c -> resize_border 
+	}else if(x > width - c -> resize_border && y > c -> resize_border
 				&& y < height - c -> resize_border){
 		cur = c -> rs;
-	}else if(y < 3 && x > c -> resize_border 
+	}else if(y < 3 && x > c -> resize_border
 				&& x < width - c -> resize_border){
 		cur = c -> ts;
-	}else if(y > height - c -> resize_border && x > c -> resize_border 
+	}else if(y > height - c -> resize_border && x > c -> resize_border
 				&& x < width - c -> resize_border){
 		cur = c -> bs;
 	}else{
 		cur = NULL;
 	}
 	if(cur != nc && ! QQ_WINDOW(widget) -> is_maxsize){
-		gdk_window_set_cursor(widget -> window, cur);
+		gdk_window_set_cursor(GDK_WINDOW(widget), cur);
 	}
 
 	return FALSE;
@@ -295,22 +299,23 @@ void qq_window_set_shape_mask(QQWindow *qwin)
 	gint width, height;
 	gtk_window_get_size(GTK_WINDOW(qwin), &width, &height);
 
-	if(qwin -> pre_w == width 
+	if(qwin -> pre_w == width
 			&& qwin -> pre_h == height){
 		/*
 		 * The shape of the window does change.
-		 * We just do nothing. 
+		 * We just do nothing.
 		 */
 		return;
 	}
 
+#if !GTK_CHECK_VERSION(3,0,0)
 	GdkBitmap 	*bm = NULL;
 	gdouble 	radius = 5;
 
-	bm = (GdkBitmap*)gdk_pixmap_new(NULL, width, height, 1);	
+	bm = (GdkBitmap*)gdk_pixmap_new(NULL, width, height, 1);
 	/*
 	cairo_t *ct = gdk_cairo_create(bm);
-	
+
 	cairo_set_source_rgb(ct, 0, 0, 0);
 	cairo_rectangle(ct, 0, 0, width, height);
 	cairo_fill(ct);
@@ -348,6 +353,7 @@ void qq_window_set_shape_mask(QQWindow *qwin)
 
 	qwin -> pre_w = width;
 	qwin -> pre_h = height;
+#endif
 }
 
 gboolean expose_event_cb(GtkWidget *widget, GdkEventExpose *event

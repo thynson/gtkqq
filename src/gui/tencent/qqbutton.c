@@ -32,7 +32,7 @@ QQButton* qq_button_new(QQButtonType type)
 	 * But I don't want to use the property.
 	 */
 	qq_button_set_type(btn, type);
-	
+
 	return btn;
 }
 
@@ -40,7 +40,7 @@ GType qq_button_get_type()
 {
 	static GType type = 0;
 	if(type == 0){
-		static const GTypeInfo type_info = 
+		static const GTypeInfo type_info =
 		{
 			sizeof(QQButtonClass),
 			NULL,
@@ -73,7 +73,7 @@ void qq_button_set_type(QQButton *btn, QQButtonType type)
 		btn -> nor_img = c -> closebtn_nor_img;
 		btn -> hl_img = c -> closebtn_hl_img;
 		btn -> push_img = c -> closebtn_push_img;
-		
+
 		btn -> curr_img = btn -> nor_img;
 		btn -> type = type;
 		break;
@@ -81,7 +81,7 @@ void qq_button_set_type(QQButton *btn, QQButtonType type)
 		btn -> nor_img = c -> minbtn_nor_img;
 		btn -> hl_img = c -> minbtn_hl_img;
 		btn -> push_img = c -> minbtn_push_img;
-		
+
 		btn -> curr_img = btn -> nor_img;
 		btn -> type = type;
 		break;
@@ -89,7 +89,7 @@ void qq_button_set_type(QQButton *btn, QQButtonType type)
 		btn -> nor_img = c -> maxbtn_nor_img;
 		btn -> hl_img = c -> maxbtn_hl_img;
 		btn -> push_img = c -> maxbtn_push_img;
-		
+
 		btn -> curr_img = btn -> nor_img;
 		btn -> type = type;
 		break;
@@ -132,7 +132,7 @@ void qq_button_init(QQButton *btn, gpointer data)
 	btn -> push_img = NULL;
 
 	btn -> alloc = g_slice_new(GtkAllocation);
-	
+
 	return;
 }
 
@@ -197,7 +197,7 @@ gboolean button_press_event_cb(GtkWidget *widget, GdkEventButton *event
 	if(event -> button != 1){
 		return FALSE;
 	}
-	
+
 	QQButton *btn = QQ_BUTTON(widget);
 	btn -> curr_img = btn -> push_img;
 	expose_event_cb(widget, NULL, NULL);
@@ -224,7 +224,7 @@ gboolean expose_event_cb(GtkWidget *widget
 {
 	QQButton *btn = QQ_BUTTON(widget);
 	GtkImage *img = (GtkImage*)btn -> curr_img;
-	cairo_t *ct = gdk_cairo_create(widget -> window);
+	cairo_t *ct = gdk_cairo_create(GDK_WINDOW(widget));
 	GdkPixbuf *pb = gtk_image_get_pixbuf(img);
 
 	gtk_widget_get_allocation(widget, btn -> alloc);

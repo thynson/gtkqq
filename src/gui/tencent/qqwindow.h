@@ -24,7 +24,7 @@ typedef struct _QQWindowClass 	QQWindowClass;
 
 struct _QQWindow{
 	GtkWindow parent;
-	
+
 	/* private */
 	gboolean is_maxsize;
 	gint pre_w, pre_h;	//the pre width and height
@@ -50,9 +50,15 @@ struct _QQWindowClass{
 	/*
 	 * Use to get a rounded rectangle
 	 */
+#if !GTK_CHECK_VERSION(3,0,0)
 	GdkColormap 	*cm;
 	GdkColor 	fg, bg;
+#else
+    GdkVisual   *cm;
+    GdkRGBA     fg, bg;
+#endif
 };
+
 
 GtkWidget* 	qq_window_new();
 GType 	qq_window_get_type();

@@ -8,7 +8,7 @@ static gboolean delete_event_cb(GtkWidget *w, GdkEvent *event, gpointer data)
 
 static gboolean button_press_cb(GtkWidget *w, GdkEventButton *event
 		, gpointer data){
-	
+
 	g_print("button press.\n");
 	gint width,height;
 	gtk_window_get_size(GTK_WINDOW(w), &width, &height);
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 {
 
 	gtk_init(&argc, &argv);
-	
+
 	GtkWidget *window;
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 	gtk_widget_show(window);
 
 	//Must be called _after_ the widget is realized
-	gdk_window_set_events(window -> window, GDK_ALL_EVENTS_MASK);
+	gdk_window_set_events(GDK_WINDOW(window), GDK_ALL_EVENTS_MASK);
 	gtk_main();
 	return 0;
 }
