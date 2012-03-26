@@ -76,7 +76,9 @@ static void qq_tray_blinking(QQTray *tray, const gchar *uin)
     }
     gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(tray), pb);
     g_object_unref(pb);
+#if !GTK_CHECK_VERSION(3,0,0)
     gtk_status_icon_set_blinking(GTK_STATUS_ICON(tray), TRUE);
+#endif
 }
 
 //
@@ -91,7 +93,7 @@ static void qq_tray_popup_menu(GtkStatusIcon *tray, guint button
                                                     , QQTrayPriv);
     gtk_menu_popup(GTK_MENU(priv -> popupmenu),
                    NULL, NULL,
-                   gtk_status_icon_position_menu, tray, 
+                   gtk_status_icon_position_menu, tray,
                    button, active_time);
 }
 
@@ -104,7 +106,7 @@ static gboolean qq_tray_button_press(GtkStatusIcon *tray, GdkEvent *event
 	if(buttonevent -> button != 1 || buttonevent -> type != GDK_BUTTON_PRESS){
 		return FALSE;
 	}
-    
+
     QQTrayPriv *priv = G_TYPE_INSTANCE_GET_PRIVATE(tray, qq_tray_get_type()
                                                     , QQTrayPriv);
     gchar *uin = g_queue_pop_tail(priv -> blinking_queue);
@@ -120,7 +122,9 @@ static gboolean qq_tray_button_press(GtkStatusIcon *tray, GdkEvent *event
     g_free(uin);
 
     if(g_queue_is_empty(priv -> blinking_queue)){
+#if !GTK_CHECK_VERSION(3,0,0)
         gtk_status_icon_set_blinking(tray, FALSE);
+#endif
         GdkPixbuf *pb = gdk_pixbuf_new_from_file(IMGDIR"/webqq_icon.png"
                                                     , NULL);
         gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(tray), pb);
@@ -143,10 +147,10 @@ static gboolean qq_tray_on_show_tooltip(GtkWidget* widget
 {
     GdkPixbuf *pb;
     if(info -> me -> qqnumber == NULL || info -> me -> qqnumber -> len <=0){
-        // Not login. 
+        // Not login.
         pb = gdk_pixbuf_new_from_file_at_size(IMGDIR"/webqq_icon.png"
                                                 , 35, 35, NULL);
-        gtk_tooltip_set_markup(tip, "<b>GtkQQ</b>"); 
+        gtk_tooltip_set_markup(tip, "<b>GtkQQ</b>");
         gtk_tooltip_set_icon(tip, pb);
         g_object_unref(pb);
         return TRUE;
@@ -159,7 +163,7 @@ static gboolean qq_tray_on_show_tooltip(GtkWidget* widget
     g_snprintf(buf, 500, "<b>%s</b><span color='blue'>(%s)</span>"
                                     , info -> me -> nick -> str
                                     , info -> me -> qqnumber -> str);
-    gtk_tooltip_set_markup(tip, buf); 
+    gtk_tooltip_set_markup(tip, buf);
     return TRUE;
 }
 
@@ -172,15 +176,15 @@ static void qq_tray_mute_menu_item_activate(GtkMenuItem *item, gpointer data)
 
 	if (mute)
 		g_print("Mute (%s, %d)\n", __FILE__, __LINE__);
-	
+
 	gqq_config_set_mute(cfg, mute);
 }
 
-/** 
+/**
  * Set mute item status, it usually called when user login.
- * 
- * @param tray 
- * @param mute 
+ *
+ * @param tray
+ * @param mute
  */
 void qq_tray_set_mute_item(QQTray *tray, gboolean mute)
 {
@@ -358,7 +362,9 @@ void qq_tray_stop_blinking_for(QQTray *tray, const gchar *uin)
     GdkPixbuf *pb;
     if(g_queue_is_empty(priv -> blinking_queue)){
         // no more blinking
+#if !GTK_CHECK_VERSION(3,0,0)
         gtk_status_icon_set_blinking(GTK_STATUS_ICON(tray), FALSE);
+#endif
         pb = gdk_pixbuf_new_from_file(IMGDIR"/webqq_icon.png", NULL);
         gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(tray), pb);
         g_object_unref(pb);
