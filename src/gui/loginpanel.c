@@ -27,7 +27,11 @@ extern GQQMessageLoop *send_loop;
 
 static void qq_loginpanelclass_init(QQLoginPanelClass *c);
 static void qq_loginpanel_init(QQLoginPanel *obj);
+#if GTK_CHECK_VERSION(3,0,0)
+static void qq_loginpanel_destroy(GtkWidget *obj);
+#else
 static void qq_loginpanel_destroy(GtkObject *obj);
+#endif
 
 static void qqnumber_combox_changed(GtkComboBox *widget, gpointer data);
 static void update_face_image(QQInfo *info, QQMainPanel *panel);
@@ -72,10 +76,15 @@ GtkWidget* qq_loginpanel_new(GtkWidget *container)
 
 static void qq_loginpanelclass_init(QQLoginPanelClass *c)
 {
+#if GTK_CHECK_VERSION(3,0,0)
+    GtkWidgetClass *widget_class = NULL;
+    widget_class = GTK_WIDGET_CLASS(c);
+    widget_class -> destroy = qq_loginpanel_destroy;
+#else
     GtkObjectClass *object_class = NULL;
-
     object_class = GTK_OBJECT_CLASS(c);
     object_class -> destroy = qq_loginpanel_destroy;
+#endif
 
     /*
      * get the default main evet loop context.
@@ -279,17 +288,17 @@ static void read_verifycode(gpointer p)
                                                     , GTK_WINDOW(w), GTK_DIALOG_MODAL
                                                     , GTK_STOCK_OK, GTK_RESPONSE_OK
                                                     , NULL);
-    GtkWidget *vbox = GTK_DIALOG(dialog) -> vbox;
+    GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
     GtkWidget *img = gtk_image_new_from_file(fn);
-    gtk_box_pack_start(GTK_BOX(vbox), gtk_label_new("VerifyCode：")
+    gtk_box_pack_start(GTK_BOX(content_area), gtk_label_new("VerifyCode：")
                        , FALSE, FALSE, 20);
-    gtk_box_pack_start(GTK_BOX(vbox), img, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(content_area), img, FALSE, FALSE, 0);
 
     GtkWidget *vc_entry = gtk_entry_new();
     gtk_widget_set_size_request(vc_entry, 200, -1);
     GtkWidget *hbox = gtk_hbox_new(FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), vc_entry, TRUE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 10);
+    gtk_box_pack_start(GTK_BOX(content_area), hbox, FALSE, FALSE, 10);
 
     gtk_widget_set_size_request(dialog, 300, 220);
     gtk_widget_show_all(dialog);
@@ -393,11 +402,11 @@ static void qq_loginpanel_init(QQLoginPanel *obj)
     }
 
     obj -> uin_label = gtk_label_new("QQ Number:");
-    obj -> uin_entry = gtk_combo_box_entry_new_text();
+    obj -> uin_entry = gtk_combo_box_text_new_with_entry();
 
     for(i = 0; i < login_users -> len; ++i){
         usr = (GQQLoginUser*)g_ptr_array_index(login_users, i);
-        gtk_combo_box_append_text(GTK_COMBO_BOX(obj -> uin_entry)
+        gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(obj -> uin_entry)
                                   , usr -> qqnumber);
     }
     gtk_combo_box_set_active(GTK_COMBO_BOX(obj -> uin_entry), 0);
@@ -485,6 +494,7 @@ static void qq_loginpanel_init(QQLoginPanel *obj)
 
     //error informatin label
     obj -> err_label = gtk_label_new("");
+#if !GTK_CHECK_VERSION(3,0,0)
     GdkColor color;
     GdkColormap *cmap = gdk_colormap_get_system();
     gdk_colormap_alloc_color(cmap, &color, TRUE, TRUE);
@@ -492,6 +502,11 @@ static void qq_loginpanel_init(QQLoginPanel *obj)
     //change text color to red
     //MUST modify fb, not text
     gtk_widget_modify_fg(obj -> err_label, GTK_STATE_NORMAL, &color);
+#else
+    GdkRGBA color;
+    gdk_rgba_parse(&color, "#fff000000");
+    gtk_widget_override_color(obj -> err_label, GTK_STATE_NORMAL, &color);
+#endif
     hbox2 = gtk_hbox_new(FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox2), obj -> err_label, TRUE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), hbox2, TRUE, FALSE, 0);
@@ -522,10 +537,12 @@ static void qqnumber_combox_changed(GtkComboBox *widget, gpointer data)
     qq_statusbutton_set_status_string(obj -> status_comb, usr -> status);
     return;
 }
+
+#if GTK_CHECK_VERSION(3,0,0)
 /*
  * Destroy the instance of QQLoginPanel
  */
-static void qq_loginpanel_destroy(GtkObject *obj)
+static void qq_loginpanel_destroy(GtkWidget *obj)
 {
     /*
      * Child widgets will be destroied by their parents.
@@ -534,11 +551,23 @@ static void qq_loginpanel_destroy(GtkObject *obj)
 
 }
 
+#else
+
+static void qq_loginpanel_destroy(GtkObject *obj)
+{
+    /*
+     * Child widgets will be destroied by their parents.
+     * So, we should not try to unref the Child widgets here.
+     */
+
+}
+#endif
+
 const gchar* qq_loginpanel_get_uin(QQLoginPanel *loginpanel)
 {
     QQLoginPanel *panel = QQ_LOGINPANEL(loginpanel);
-    return gtk_combo_box_get_active_text(
-        GTK_COMBO_BOX(panel -> uin_entry));
+    return gtk_combo_box_text_get_active_text(
+        GTK_COMBO_BOX_TEXT(panel -> uin_entry));
 
 }
 const gchar* qq_loginpanel_get_passwd(QQLoginPanel *loginpanel)

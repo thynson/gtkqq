@@ -45,7 +45,7 @@ static GtkTreeModel* create_model()
 	GtkTreeIter iter;
 	GtkListStore *store;
 	gint i;
-        
+
 	store = gtk_list_store_new(2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
 	for(i = 0; i < STATUS_NUM; i++){
 		gtk_list_store_append(store, &iter);
@@ -58,7 +58,7 @@ static GtkTreeModel* create_model()
 GtkWidget* qq_statusbutton_new()
 {
 	gpointer btn = g_object_new(QQ_TYPE_STATUSBUTTON, NULL);
-	return GTK_WIDGET(btn);	
+	return GTK_WIDGET(btn);
 }
 
 static void qq_statusbutton_init(QQStatusButton *btn)
@@ -73,8 +73,8 @@ static void qq_statusbutton_init(QQStatusButton *btn)
 	renderer = gtk_cell_renderer_text_new();
 	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(btn)
 						, renderer, FALSE);
-	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(btn), renderer 
-					,"text", 1, NULL); 
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(btn), renderer
+					,"text", 1, NULL);
 
 	GdkEventMask event_mask = 0;
 	event_mask = gtk_widget_get_events(GTK_WIDGET(btn));
@@ -122,17 +122,17 @@ static void qq_statusbuttonclass_init(QQStatusButtonClass *c)
 	c -> arrow = gdk_pixbuf_new_from_file_at_scale(
 					IMGDIR"/status/downarrow.png"
 					, 10, 7, TRUE, NULL);
-	c -> hand_cursor = gdk_cursor_new(GDK_HAND1);	
+	c -> hand_cursor = gdk_cursor_new(GDK_HAND1);
 	this_class = c;
 }
 
 /*
- * 
+ *
  */
 static gboolean expose_event_cb(GtkWidget *widget
 			, GdkEventExpose *event, gpointer data)
 {
-	cairo_t *ct = gdk_cairo_create(widget -> window);
+	cairo_t *ct = gdk_cairo_create(gtk_widget_get_window(widget));
 	GdkPixbuf *pb = this_class -> pb[QQ_STATUSBUTTON(widget) -> status];
 	gint pbw, pbh, arroww, arrowh, gap = 5;
 	pbw = gdk_pixbuf_get_width(pb);
@@ -145,13 +145,13 @@ static gboolean expose_event_cb(GtkWidget *widget
 	gint alignx, aligny;
 	alignx = (alloc.width - pbw - arroww - gap) / 2;
 	aligny = (alloc.height - pbh) / 2;
-	
+
 	//maybe they are -
 	alignx = (alignx > 0 ? alignx : 0);
 	aligny = (aligny > 0 ? aligny : 0);
 
 	gdk_cairo_set_source_pixbuf(ct, pb
-			, alloc.x + alignx 
+			, alloc.x + alignx
 			, alloc.y + aligny);
 	cairo_paint(ct);
 
@@ -219,7 +219,7 @@ void qq_statusbutton_set_status(GtkWidget *btn
 }
 /*
  * `changed` signal handler
- * Change the shown image 
+ * Change the shown image
  */
 static void change_img_cb(GtkComboBox *w, gpointer data)
 {

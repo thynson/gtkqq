@@ -2,7 +2,11 @@
 
 static void qq_splashpanelclass_init(QQSplashPanelClass *c);
 static void qq_splashpanel_init(QQSplashPanel *obj);
+#if GTK_CHECK_VERSION(3,0,0)
+static void qq_splashpanel_destroy(GtkWidget *obj);
+#else
 static void qq_splashpanel_destroy(GtkObject *obj);
+#endif
 
 GtkWidget *qq_splashpanel_new()
 {
@@ -31,13 +35,18 @@ GType qq_splashpanel_get_type()
 						, &info, 0);
 	}
 	return t;
-	
+
 }
 
 static void qq_splashpanelclass_init(QQSplashPanelClass *c)
 {
-	GtkObjectClass *cl = GTK_OBJECT_CLASS(c);
+#if GTK_CHECK_VERSION(3,0,0)
+	GtkWidgetClass *cl = GTK_WIDGET_CLASS(c);
 	cl -> destroy = qq_splashpanel_destroy;
+#else
+    GtkObjectClass *cl = GTK_OBJECT_CLASS(c);
+    cl -> destroy = qq_splashpanel_destroy;
+#endif
 }
 
 /*
@@ -50,7 +59,7 @@ static gboolean progress_bar_timeout_func(gpointer data)
 }
 
 static void qq_splashpanel_init(QQSplashPanel *obj)
-{	
+{
 	GtkWidget *logo = gtk_image_new_from_file(IMGDIR"webqq_icon.png");
 	gtk_widget_set_size_request(logo, -1, 250);
 	gtk_box_pack_start(GTK_BOX(obj), logo, FALSE, FALSE, 0);
@@ -59,13 +68,21 @@ static void qq_splashpanel_init(QQSplashPanel *obj)
 	gtk_widget_set_size_request(probar, 200, 50);
 	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(probar), "登录中...");
 	g_timeout_add(100, progress_bar_timeout_func, probar);
-	
+
 	GtkWidget *box = NULL;
 	box = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box), probar, TRUE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(obj), box, FALSE, FALSE, 50);
 }
+
+#if GTK_CHECK_VERSION(3,0,0)
+static void qq_splashpanel_destroy(GtkWidget *obj)
+{
+
+}
+#else
 static void qq_splashpanel_destroy(GtkObject *obj)
 {
 
 }
+#endif
