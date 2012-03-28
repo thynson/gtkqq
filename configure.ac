@@ -52,8 +52,11 @@ AC_ARG_ENABLE(unity,
 
 AC_ARG_ENABLE(proxy,
         [ --enable-proxy build on ubuntu unity],
-        CFLAGS="$CFLAGS -DUSE_PROXY")		
-		
+        CFLAGS="$CFLAGS -DUSE_PROXY")
+
+AC_ARG_ENABLE(gtk3,
+        [ --enable-gtk3 to build with gtk3], ac_enable_gtk3=yes)
+
 #AC_ARG_ENABLE(libnotify,
 #              AS_HELP_STRING([--enable-libnotify],
 #                             [Enable libnotify support (used to show message\
@@ -73,13 +76,24 @@ PKG_CHECK_MODULES(ZLIB, [zlib >= 1.2], [
             AC_SUBST(ZLIB_LIBS)
             ] ,
             )
-# checks for gtk+2.0
-PKG_CHECK_MODULES(GTK, [gtk+-2.0 >= 2.24], [
-            AC_DEFINE(USE_GTK, 1, [Use GTK])
-            AC_SUBST(GTK_CFLAGS)
-            AC_SUBST(GTK_LIBS)
-            ] ,
-            )
+
+if test "x$ac_enable_gtk3" = "xyes"; then
+    # checks for gtk+3.0
+    PKG_CHECK_MODULES(GTK, [gtk+-3.0 >= 2.24], [
+                AC_DEFINE(USE_GTK, 1, [Use GTK])
+                AC_SUBST(GTK_CFLAGS)
+                AC_SUBST(GTK_LIBS)
+                ] ,
+                )
+else
+    #checks for gtk+2.0
+    PKG_CHECK_MODULES(GTK, [gtk+-2.0 >= 2.24], [
+                AC_DEFINE(USE_GTK, 1, [Use GTK])
+                AC_SUBST(GTK_CFLAGS)
+                AC_SUBST(GTK_LIBS)
+                ] ,
+                )
+fi
 # checks for glib2.0
 PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.18], [
             AC_DEFINE(USE_GLIB, 1, [Use GLIB])
@@ -233,9 +247,9 @@ AC_CHECK_FUNCS([bzero gethostbyname memset mkdir select socket strstr strtol])
 AC_CHECK_FUNCS([inet_ntoa])
 
 AC_CONFIG_FILES([Makefile
-         src/Makefile 
-         src/comm/Makefile 
-         src/libqq/Makefile 
+         src/Makefile
+         src/comm/Makefile
+         src/libqq/Makefile
          src/cli/Makefile
          src/gui/Makefile
          src/gui/tencent/Makefile
